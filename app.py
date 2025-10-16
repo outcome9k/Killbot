@@ -1,40 +1,65 @@
-import requests
+from flask import Flask, request
 import telebot
 import re
-import logging
+import requests
 
-# >>> DO NOT PASTE YOUR REAL TOKEN PUBLICLY <<<
-BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"
-API_URL = "https://killbot-a7mt.onrender.com/kill"
-
-logging.basicConfig(level=logging.INFO)
+# --- Telegram Bot Token ---
+BOT_TOKEN = "7556380686:AAHkY7xVjw4j14fcQy-5dlCGu5rcXha6vRU"
 bot = telebot.TeleBot(BOT_TOKEN)
 
+# --- Flask app ---
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "KillBot API is running ✅"
+
+@app.route('/kill', methods=['GET', 'POST'])
+def kill_route():
+    if request.method == 'POST':
+        data = request.get_json(force=True)
+        card = data.get('card')
+        return {"status": "ok", "card": card}, 200
+    else:
+        return {"status": "GET ok"}, 200
+
+# --- Telegram Command Handlers ---
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, ("<b>Welcome! @diwazz Card Killer Bot.</b>\n\n"
-                           "Use <code>/kill CC|MM|YY|CVV</code> to start."), parse_mode='HTML')
+    bot.reply_to(
+        message,
+        "<b>Welcome!</b>\nUse /kill CC|MM|YY|CVV",
+        parse_mode='HTML'
+    )
 
 @bot.message_handler(commands=['kill'])
-def handle_kill_command(message):
-    text = message.text or ""
-    # remove command part if Telegram includes bot username: "/kill@MyBot 4242..."
-    parts = text.split(' ', 1)
-    if len(parts) < 2 or not parts[1].strip():
-        bot.reply_to(message, "<b>Please provide card details in format:</b>\n<code>CC|MM|YY|CVV</code>", parse_mode='HTML')
+def handle_kill(message):
+    try:
+        command_text = message.text.split(' ', 1)[1]
+    except IndexError:
+        bot.reply_to(message, "⚠️ Format: /kill CC|MM|YY|CVV")
         return
 
-    command_text = parts[1].strip()
-    # accept expiry year 2 or 4 digits, cvv 3-4, 16-digit PAN
-    match = re.match(r'^(\d{12,19})\|(\d{2})\|(\d{2,4})\|(\d{3,4})$', command_text)
+    match = re.match(r'(\d{16})\|(\d{2})\|(\d{2,4})\|(\d{3,4})', command_text)
     if not match:
-        bot.reply_to(message, "<b>Invalid format. Use:</b> <code>CC|MM|YY|CVV</code>", parse_mode='HTML')
+        bot.reply_to(message, "❌ Invalid format.")
         return
 
-    full_cc_string = match.group(0)
+    full_cc = match.group(0)
+    payload = {'card': full_cc}
 
-    # mask card when showing to user (only show first6 + last4)
-    pan = match.group(1)
+    try:
+        response = requests.post("https://killbot-a7mt.onrender.com/kill", json=payload)
+        bot.reply_to(message, f"✅ Response:\n<code>{response.text}</code>", parse_mode='HTML')
+    except Exception as e:
+        bot.reply_to(message, f"🚫 Error: {e}")
+
+# --- Run bot in background ---
+import threading
+def run_bot():
+    bot.polling(none_stop=True)
+
+threading.Thread(target=run_bot).start()    pan = match.group(1)
     masked = pan[:6] + '*' * (len(pan)-10) + pan[-4:] if len(pan) > 10 else pan[:4] + '****' + pan[-4:]
 
     sent_message = bot.reply_to(message, f"<i>Kill initiated for <code>{masked}|{match.group(2)}|{match.group(3)}|{match.group(4)}</code>. Please wait...</i>", parse_mode='HTML')
