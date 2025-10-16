@@ -1,40 +1,4 @@
-#@diwazz
-
-from flask import Flask, request, jsonify
-import requests
-import re
-import threading
-import random
-import time
-import logging
-from typing import Dict, List, Optional, Tuple
-
-app = Flask(__name__)
-BOT_TOKEN = '7556380686:AAHkY7xVjw4j14fcQy-5dlCGu5rcXha6vRU'
-TELEGRAM_API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}/editMessageText"
-
-# Enhanced proxy list with more options
-PROXY_LIST = [
-    "gorkem.oynar@ogr.deu.edu.tr:Parola54@193.140.151.155:13128",
-    # Add more proxies here for better rotation
-]
-
-# Extended fake details pool with more diversity
-FAKE_DETAILS_POOL = [
-    {"first": "John", "last": "Smith", "address": "123 Oak St", "city": "Springfield", "state": "IL", "zip": "62704"},
-    {"first": "Emily", "last": "Jones", "address": "456 Maple Ave", "city": "Riverside", "state": "CA", "zip": "92501"},
-    {"first": "Michael", "last": "Williams", "address": "789 Pine Ln", "city": "Georgetown", "state": "TX", "zip": "78626"},
-    {"first": "Jessica", "last": "Brown", "address": "101 Elm Ct", "city": "Franklin", "state": "TN", "zip": "37064"},
-    {"first": "David", "last": "Davis", "address": "212 Birch Rd", "city": "Madison", "state": "WI", "zip": "53703"},
-    {"first": "Sarah", "last": "Miller", "address": "333 Cedar Blvd", "city": "Phoenix", "state": "AZ", "zip": "85001"},
-    {"first": "James", "last": "Wilson", "address": "444 Spruce Way", "city": "Denver", "state": "CO", "zip": "80202"},
-    {"first": "Jennifer", "last": "Moore", "address": "555 Redwood Dr", "city": "Portland", "state": "OR", "zip": "97201"},
-    {"first": "Robert", "last": "Taylor", "address": "666 Aspen Pl", "city": "Seattle", "state": "WA", "zip": "98101"},
-    {"first": "Mary", "last": "Anderson", "address": "777 Willow St", "city": "Boston", "state": "MA", "zip": "02108"},
-    {"first": "William", "last": "Thomas", "address": "888 Poplar Ave", "city": "Miami", "state": "FL", "zip": "33101"},
-    {"first": "Patricia", "last": "Jackson", "address": "999 Magnolia Ct", "city": "Atlanta", "state": "GA", "zip": "30303"},
-    {"first": "Richard", "last": "White", "address": "111 Sycamore Rd", "city": "Chicago", "state": "IL", "zip": "60601"},
-    {"first": "Linda", "last": "Harris", "address": "222 Dogwood Ln", "city": "Dallas", "state": "TX", "zip": "75201"},
+/storage/emulated/0/OUTCOME/KILLERCODE/    {"first": "Linda", "last": "Harris", "address": "222 Dogwood Ln", "city": "Dallas", "state": "TX", "zip": "75201"},
     {"first": "Charles", "last": "Martin", "address": "321 Holly Blvd", "city": "Los Angeles", "state": "CA", "zip": "90001"},
 ]
 
